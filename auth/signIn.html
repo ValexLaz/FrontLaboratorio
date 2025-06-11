@@ -174,6 +174,9 @@
             // Mostrar el Toast de error
             const toastElement = document.getElementById("errorToast");
             const toast = new bootstrap.Toast(toastElement);
+            toastElement.querySelector(
+              ".toast-body"
+            ).textContent = `Credenciales inválidas. Intenta de nuevo. ${error}`;
             toast.show();
           }
         });
