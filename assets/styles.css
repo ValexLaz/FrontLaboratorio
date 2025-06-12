@@ -1,0 +1,135 @@
+body {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.order-card {
+  border-left: 5px solid #0d6efd;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.order-card h5 {
+  margin-bottom: 0.5rem;
+}
+
+.order-meta {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.badge-status {
+  font-size: 0.85rem;
+  padding: 0.35em 0.6em;
+}
+
+.order-actions button {
+  min-width: 100px;
+}
+
+#orderForm, #filterForm {
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.03);
+  margin-bottom: 2rem;
+}
+
+/* Reset y tipografía */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: linear-gradient(to right, #f8f9fa, #e9ecef);
+  color: #1F2937;
+  font-size: 16px;
+  line-height: 1.5;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Encabezados */
+h1, h2, h3 {
+  color: #1F2937;
+  margin-bottom: 16px;
+}
+h1 { font-size: 32px; }
+h2 { font-size: 24px; }
+
+/* Botones */
+button {
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
+}
+button:hover {
+  opacity: 0.9;
+}
+
+/* Inputs y selects */
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  font-size: 16px;
+  margin-bottom: 16px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: #3B82F6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+  outline: none;
+}
+
+/* Tabla */
+.table-wrapper {
+  max-height: 400px;
+  overflow-y: auto;
+  border-radius: 0.5rem;
+  border: 1px solid #dee2e6;
+  background: white;
+  animation: slideUp 0.5s ease-in-out;
+}
+.table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 1;
+}
+
+/* Toasts */
+.toast {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Animaciones */
+.animate-fade-in {
+  animation: fadeIn 0.7s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Íconos en botones */
+.btn-icon i {
+  margin-right: 0.5rem;
+}
