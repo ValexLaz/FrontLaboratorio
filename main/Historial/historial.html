@@ -9,6 +9,21 @@
 <body>
   <div class="container py-4">
     <h2 class="mb-4">Historial de Clientes</h2>
+
+    <!-- Botón de atrás -->
+    <div class="mb-3">
+      <a href="../main.html" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Atrás
+      </a>
+    </div>
+
+    <!-- Justo antes de la tabla -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <input type="text" id="buscadorPaciente" class="form-control" placeholder="Buscar por nombre de paciente...">
+      </div>
+    </div>
+
     <div class="table-responsive">
       <table class="table table-bordered align-middle" id="historialTable">
         <thead class="table-light">
@@ -21,6 +36,7 @@
             <th>Valor Registrado</th>
             <th>Unidad</th>
             <th>Fecha</th>
+            <th>PDF</th>
           </tr>
         </thead>
         <tbody id="historialBody">
@@ -30,6 +46,8 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.7.0/jspdf.plugin.autotable.min.js"></script>
   <script src="historial.js"></script>
 </body>
 </html>
