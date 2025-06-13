@@ -63,7 +63,7 @@ async function cargarPacientes() {
 async function cargarTestTypes() {
   try {
     const token = localStorage.getItem("token");
-    const res = await axios.get("http://localhost:3003/api/testtypes", {
+    const res = await axios.get("http://localhost:5262/api/TestTypes", {
       headers: { Authorization: `Bearer ${token}` }
     });
 
@@ -115,7 +115,7 @@ function mostrarOrdenes(orders) {
         <div>
           <h5>Orden #${order.orderId}</h5>
           <p class="order-meta mb-1">
-            <i class="bi bi-person"></i> Paciente: ${patientName} 
+            <i class="bi bi-person"></i> Paciente: ${patientName}
             <span class="text-muted">(ID: ${order.patientId})</span>
             </p>
 
@@ -133,6 +133,9 @@ function mostrarOrdenes(orders) {
           </button>
           <button class="btn btn-outline-danger btn-sm" onclick='eliminarOrden(${order.orderId}, ${order.doctorId})'>
             <i class="bi bi-trash3"></i> Eliminar
+          </button>
+          <button class="btn btn-outline-primary btn-sm" onclick='redirigirAResultado(${order.orderId},${order.patientId},${order.testTypeId})'>
+            <i class="bi bi-upload"></i> Registrar Resultado
           </button>
         </div>
       </div>
@@ -277,4 +280,9 @@ function getBadgeColor(status) {
     rechazado: "secondary"
   };
   return map[status?.toLowerCase()] || "info";
+}
+
+function redirigirAResultado(orderId, patientId, testTypeId) {
+  // Redirige a results.html con los datos como parámetros de la URL
+  window.location.href = `../results/results.html?orderId=${orderId}&patientId=${patientId}&testTypeId=${testTypeId}`;
 }

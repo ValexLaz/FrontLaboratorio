@@ -133,3 +133,39 @@ input:focus, select:focus, textarea:focus {
 .btn-icon i {
   margin-right: 0.5rem;
 }
+
+.field-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.field-label {
+  min-width: 180px;
+  padding-top: 6px;
+}
+.field-ref-value {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.field-ref {
+  display: inline-block;
+  margin-right: 1rem;
+  color: #888;
+  font-size: 0.95em;
+}
+.field-value {
+  width: 120px;
+  margin-left: 0.5rem;
+}
+.field-comment {
+  width: 250px;
+  margin-top: 0.5rem;
+}
+
+/* assets/styles.css */
+#fieldsTable td, #fieldsTable th {
+  vertical-align: middle;
+  text-align: center;
+}

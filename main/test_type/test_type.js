@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3003/api/testtypes"; // Cambia el puerto si es diferente
+const API_URL = "http://localhost:5262/api/testtypes"; // Cambia el puerto si es diferente
 
 const form = document.getElementById("testTypeForm");
 const nameInput = document.getElementById("name");
