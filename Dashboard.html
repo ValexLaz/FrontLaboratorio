@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Laboratorio - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 30px;
+            margin-top: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .user-email {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .user-id {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+
+        .nav-tab.active {
+            background: white;
+            border-bottom-color: #3498db;
+            color: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .service-section {
+            margin-bottom: 40px;
+        }
+
+        .service-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .service-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f1f2f6;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+        }
+
+        .close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-card:nth-child(2) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-card:nth-child(3) {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .badge-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .user-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Sistema de Laboratorio</h1>
+            <p>Gestión integral de análisis médicos y resultados</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('dashboard')">Dashboard</button>
+            <button class="nav-tab" onclick="showTab('test-types')">Test Types</button>
+            <button class="nav-tab" onclick="showTab('results')">Results Service</button>
+            <button class="nav-tab" onclick="showTab('result-fields')">Result Fields Service</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-test-types">-</div>
+                    <div class="stat-label">Total Test Types</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-results">-</div>
+                    <div class="stat-label">Total Results</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-result-fields">-</div>
+                    <div class="stat-label">Result Fields</div>
+                </div>
+            </div>
+
+            <div class="service-section">
+                <h2 class="service-title">🔗 Enlaces Rápidos</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <a href="http://localhost:5262/swagger" target="_blank" class="btn btn-primary">Test Types Service Swagger</a>
+                    <a href="http://localhost:5272/swagger" target="_blank" class="btn btn-primary">Results Service Swagger</a>
+                    <a href="http://localhost:5175/swagger" target="_blank" class="btn btn-primary">Result Fields Service Swagger</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Types Tab -->
+        <div id="test-types" class="tab-content">
+            <div class="service-section">
+                <div class="service-header">
+                    <h2 class="service-title">🏷️ Test Types Management</h2>
+                    <button class="btn btn-success" onclick="openModal('create-test-type-modal')">Crear Test Type</button>
+                </div>
+
+                <div id="test-types-data">
+                    <div class="loading">Cargando test types...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Service Tab -->
+        <div id="results" class="tab-content">
+            <div class="service-section">
+                <div class="service-header">
+                    <h2 class="service-title">📊 Results Management</h2>
+                    <button class="btn btn-success" onclick="openModal('create-result-modal')">Crear Result</button>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Filtrar por Order ID:</label>
+                        <input type="number" id="filter-order-id" placeholder="Order ID">
+                    </div>
+                    <div class="form-group">
+                        <label>Filtrar por Patient ID:</label>
+                        <input type="number" id="filter-patient-id" placeholder="Patient ID">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" onclick="loadResultsByFilter()">Filtrar</button>
+                    </div>
+                </div>
+
+                <div id="results-data">
+                    <div class="loading">Cargando results...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Fields Service Tab -->
+        <div id="result-fields" class="tab-content">
+            <div class="service-section">
+                <div class="service-header">
+                    <h2 class="service-title">📝 Result Fields Management</h2>
+                    <button class="btn btn-success" onclick="openModal('create-result-field-modal')">Crear Result Field</button>
+                </div>
+
+                <div id="result-fields-data">
+                    <div class="loading">Cargando result fields...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Create Test Type Modal -->
+    <div id="create-test-type-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Crear Nuevo Test Type</h3>
+                <button class="close" onclick="closeModal('create-test-type-modal')">&times;</button>
+            </div>
+            <form id="create-test-type-form">
+                <div class="form-group">
+                    <label>Name: <span style="color: red">*</span></label>
+                    <input type="text" id="test-type-name" required placeholder="Ej: Hemograma Completo">
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea id="test-type-description" rows="3" placeholder="Descripción opcional del tipo de análisis"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn" onclick="closeModal('create-test-type-modal')" style="background: #6c757d; color: white;">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Crear Test Type</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Result Modal -->
+    <div id="create-result-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Crear Nuevo Result</h3>
+                <button class="close" onclick="closeModal('create-result-modal')">&times;</button>
+            </div>
+            <form id="create-result-form">
+                <div class="form-group">
+                    <label>Order ID: <span style="color: red">*</span></label>
+                    <input type="number" id="result-order-id" required>
+                </div>
+                <div class="form-group">
+                    <label>Patient ID: <span style="color: red">*</span></label>
+                    <input type="number" id="result-patient-id" required>
+                </div>
+                <div class="form-group">
+                    <label>Test Type ID: <span style="color: red">*</span></label>
+                    <input type="number" id="result-test-type-id" required>
+                </div>
+                <div class="form-group">
+                    <label>Status: <span style="color: red">*</span></label>
+                    <select id="result-status" required>
+                        <option value="">Seleccionar status</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Completado">Completado</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn" onclick="closeModal('create-result-modal')" style="background: #6c757d; color: white;">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Crear Result</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Result Field Modal -->
+    <div id="create-result-field-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Crear Nuevo Result Field</h3>
+                <button class="close" onclick="closeModal('create-result-field-modal')">&times;</button>
+            </div>
+            <form id="create-result-field-form">
+                <div class="form-group">
+                    <label>Result ID: <span style="color: red">*</span></label>
+                    <input type="number" id="rf-result-id" required>
+                </div>
+                <div class="form-group">
+                    <label>Test Type ID: <span style="color: red">*</span></label>
+                    <input type="number" id="rf-test-type-id" required>
+                </div>
+                <div class="form-group">
+                    <label>Field ID: <span style="color: red">*</span></label>
+                    <input type="number" id="rf-field-id" required>
+                </div>
+                <div class="form-group">
+                    <label>Value: <span style="color: red">*</span></label>
+                    <input type="text" id="rf-value" required placeholder="Valor del resultado">
+                </div>
+                <div class="form-group">
+                    <label>Comment:</label>
+                    <textarea id="rf-comment" rows="3" placeholder="Comentario opcional"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn" onclick="closeModal('create-result-field-modal')" style="background: #6c757d; color: white;">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Crear Result Field</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript separado -->
+    <script src="dashboard.js"></script>
+</body>
+</html>
