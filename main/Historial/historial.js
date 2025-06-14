@@ -24,6 +24,20 @@ function renderHistorialTabla(data) {
   });
 }
 
+async function getDoctorName(doctorId, token) {
+  if (!doctorId) return "No asignado";
+  try {
+    const res = await fetch(`http://localhost:3000/api/user/${doctorId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) return doctorId;
+    const data = await res.json();
+    return data.name || doctorId;
+  } catch {
+    return doctorId;
+  }
+}
+
 async function fetchHistorial() {
   const token = localStorage.getItem("token");
   try {
@@ -44,26 +58,7 @@ async function fetchHistorial() {
       headers: { Authorization: `Bearer ${token}` }
     });
     const pacientes = await pacientesRes.json();
-    const pacientesMap = {};
-    pacientes.forEach(p => {
-      pacientesMap[p.patient_Id] = `${p.first_Name} ${p.last_Name}`;
-    });
 
-    // 4. Doctores (manejo de error si no existe el endpoint)
-    let doctoresMap = {};
-    try {
-      const doctoresRes = await fetch("http://localhost:5288/api/Doctores", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (doctoresRes.ok) {
-        const doctores = await doctoresRes.json();
-        doctores.forEach(d => {
-          doctoresMap[d.doctor_Id] = `${d.first_Name} ${d.last_Name}`;
-        });
-      }
-    } catch {
-      // Si falla, deja doctoresMap vacío y se mostrará el ID
-    }
 
     // 5. Tipos de test
     const testTypesRes = await fetch("http://localhost:5262/api/TestTypes", {
@@ -85,11 +80,29 @@ async function fetchHistorial() {
       fieldsMap[f.fieldId] = f;
     });
 
-    // 7. Prepara los datos
-    historialFiltrado = resultFields.map(rf => {
+    // Mapea pacientes con su doctor_Id y nombre
+    const pacientesMap = {};
+    pacientes.forEach(p => {
+      pacientesMap[p.patient_Id] = {
+        nombre: `${p.first_Name} ${p.last_Name}`,
+        doctorId: p.doctor_Id
+      };
+    });
+
+    historialFiltrado = await Promise.all(resultFields.map(async rf => {
       const result = results.find(r => r.resultId === rf.resultId);
       if (!result) return null;
-      const paciente = pacientesMap[result.patientId] || result.patientId;
+
+      // Obtén datos del paciente y su doctor
+      const pacienteObj = pacientesMap[result.patientId];
+      const paciente = pacienteObj ? pacienteObj.nombre : result.patientId;
+      const doctorId = pacienteObj ? pacienteObj.doctorId : null;
+
+      let doctor = "No asignado";
+      if (doctorId) {
+        doctor = await getDoctorName(doctorId, token);
+      }
+
       const testType = testTypesMap[result.testTypeId] || result.testTypeId;
       const field = fieldsMap[rf.fieldId];
       const parametro = field ? field.fieldName : rf.fieldId;
@@ -99,12 +112,11 @@ async function fetchHistorial() {
       const fecha = result.createdAt
         ? new Date(result.createdAt).toLocaleDateString('es-ES')
         : "-";
-      const doctor = doctoresMap[result.doctorId] || result.doctorId || "-";
       const comentario = rf.comment || "-";
       return { paciente, doctor, testType, parametro, valorDefinido, valorRegistrado, unidad, fecha, comentario };
-    }).filter(Boolean);
+    }));
 
-    renderHistorialTabla(historialFiltrado);
+    renderHistorialTabla(historialFiltrado.filter(Boolean));
   } catch (err) {
     alert("Error al cargar el historial. Verifica que todos los servicios estén activos.");
   }
