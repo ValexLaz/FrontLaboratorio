@@ -13,113 +13,119 @@ function showResultToast(message, type = "primary") {
 }
 
 form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-    const orderId = parseInt(document.getElementById('orderId').value);
-    const patientId = parseInt(document.getElementById('patientId').value);
-    const testTypeId = parseInt(document.getElementById('testTypeId').value);
+  const orderId = parseInt(document.getElementById('orderId').value);
+  const patientId = parseInt(document.getElementById('patientId').value);
+  const testTypeId = parseInt(document.getElementById('testTypeId').value);
 
-    const fieldId = parseInt(document.getElementById('fieldId').value);
-    const value = document.getElementById('value').value;
-    const comment = document.getElementById('comment').value;
+  try {
+      // 1. Crear el resultado con status "Finalizado"
+      const resultRes = await fetch('http://localhost:5272/api/results', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ orderId, patientId, testTypeId, status: "Finalizado" })
+      });
 
-    try {
-        // 1. Crear el resultado con status "Finalizado"
-        const resultRes = await fetch('http://localhost:5272/api/results', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ orderId, patientId, testTypeId, status: "Finalizado" })
+      if (!resultRes.ok) {
+          const error = await resultRes.text();
+          showResultToast("Error creando resultado: " + error, "danger");
+          return;
+      }
+
+      const resultData = await resultRes.json();
+      const resultId = resultData.resultId || resultData.ResultId;
+
+      // Recoge todos los fields del formulario
+      const fieldRows = document.querySelectorAll('#fieldsContainer tr');
+      const resultFields = [];
+      for (let i = 0; i < fieldRows.length; i += 2) { // Cada parámetro ocupa 2 filas
+        const fieldId = fieldRows[i].querySelector('input[name="fieldId"]').value;
+        const value = fieldRows[i].querySelector('input[name^="value_"]').value;
+        const comment = fieldRows[i + 1].querySelector('input[name^="comment_"]').value;
+        resultFields.push({
+          resultId,
+          testTypeId,
+          fieldId: parseInt(fieldId),
+          value,
+          comment
         });
+      }
 
-        if (!resultRes.ok) {
-            const error = await resultRes.text();
-            showResultToast("Error creando resultado: " + error, "danger");
-            return;
-        }
+      // Envía el array plano (no un objeto con resultFields)
+      const resultFieldRes = await fetch('http://localhost:5175/api/ResultFields', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(resultFields)
+      });
 
-        const resultData = await resultRes.json();
-        const resultId = resultData.resultId || resultData.ResultId;
+      if (!resultFieldRes.ok) {
+          const error = await resultFieldRes.text();
+          showResultToast("Error creando campos: " + error, "danger");
+          return;
+      }
 
-        // 2. Crear el campo de resultado
-        const resultFieldRes = await fetch('http://localhost:5175/api/ResultFields', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                resultId,
-                testTypeId,
-                fieldId,
-                value,
-                comment
-            })
-        });
+      // 3. Obtener la orden actual para actualizarla
+      const orderRes = await fetch(`http://localhost:3002/orders/${orderId}`, {
+          headers: {
+              'Authorization': `Bearer ${token}`
+          }
+      });
 
-        if (!resultFieldRes.ok) {
-            const error = await resultFieldRes.text();
-            showResultToast("Error creando campo: " + error, "danger");
-            return;
-        }
+      if (!orderRes.ok) {
+          const error = await orderRes.text();
+          showResultToast("Error obteniendo la orden: " + error, "danger");
+          return;
+      }
 
-        // 3. Obtener la orden actual para actualizarla
-        const orderRes = await fetch(`http://localhost:3002/orders/${orderId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+      const orderData = await orderRes.json();
 
-        if (!orderRes.ok) {
-            const error = await orderRes.text();
-            showResultToast("Error obteniendo la orden: " + error, "danger");
-            return;
-        }
+      // 4. Actualizar la orden a "Finalizado" (doctorId como query param)
+      const updateOrderDto = {
+          orderId: orderData.orderId,
+          doctorId: orderData.doctorId,
+          patientId: orderData.patientId,
+          testTypeId: orderData.testTypeId,
+          orderDate: orderData.orderDate,
+          status: "Finalizado",
+          notes: orderData.notes
+      };
 
-        const orderData = await orderRes.json();
+      const updateOrderRes = await fetch(
+          `http://localhost:3002/orders/${orderId}?doctorId=${orderData.doctorId}`,
+          {
+              method: 'PUT',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(updateOrderDto)
+          }
+      );
 
-        // 4. Actualizar la orden a "Finalizado" (doctorId como query param)
-        const updateOrderDto = {
-            orderId: orderData.orderId,
-            doctorId: orderData.doctorId,
-            patientId: orderData.patientId,
-            testTypeId: orderData.testTypeId,
-            orderDate: orderData.orderDate,
-            status: "Finalizado",
-            notes: orderData.notes
-        };
+      if (!updateOrderRes.ok) {
+          const error = await updateOrderRes.text();
+          showResultToast("Error actualizando la orden: " + error, "danger");
+          return;
+      }
 
-        const updateOrderRes = await fetch(
-            `http://localhost:3002/orders/${orderId}?doctorId=${orderData.doctorId}`,
-            {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(updateOrderDto)
-            }
-        );
+      showResultToast("Resultado, campos y orden finalizados correctamente.", "success");
+      form.reset();
+      setTimeout(() => {
+          window.location.href = "../orders/orders.html";
+      }, 1200);
 
-        if (!updateOrderRes.ok) {
-            const error = await updateOrderRes.text();
-            showResultToast("Error actualizando la orden: " + error, "danger");
-            return;
-        }
-
-        showResultToast("Resultado, campo y orden finalizados correctamente.", "success");
-        form.reset();
-        setTimeout(() => {
-            window.location.href = "../orders/orders.html";
-        }, 1200);
-
-    } catch (err) {
-        showResultToast("Error de red: " + err.message, "danger");
-    }
+  } catch (err) {
+      showResultToast("Error de red: " + err.message, "danger");
+  }
 });
 
 // Obtén los parámetros de la URL
@@ -149,7 +155,7 @@ async function getPatientName(patientId) {
 async function getTestTypeName(testTypeId) {
   try {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3003/api/TestTypes/${testTypeId}`, {
+    const res = await fetch(`http://localhost:5262/api/TestTypes/${testTypeId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) return `ID ${testTypeId}`;
@@ -169,16 +175,16 @@ async function getFieldsByTestType(testTypeId) {
   return await res.json();
 }
 
-async function renderFieldRow(field) {
+async function renderFieldRows(fields) {
   const container = document.getElementById("fieldsContainer");
-  container.innerHTML = `
+  container.innerHTML = fields.map(field => `
     <tr>
       <td>
         <strong>${field.fieldName}</strong>
-        <input type="hidden" id="fieldId" name="fieldId" value="${field.fieldId}">
+        <input type="hidden" name="fieldId" value="${field.fieldId}">
       </td>
       <td>
-        <input type="number" class="form-control" id="value" name="value" placeholder="Valor" step="0.01" required>
+        <input type="number" class="form-control" name="value_${field.fieldId}" placeholder="Valor" step="0.01" required>
       </td>
       <td>
         <span>${field.referenceRange}</span>
@@ -189,10 +195,10 @@ async function renderFieldRow(field) {
     </tr>
     <tr>
       <td colspan="4">
-        <input type="text" class="form-control" id="comment" name="comment" placeholder="Comentario">
+        <input type="text" class="form-control" name="comment_${field.fieldId}" placeholder="Comentario" required>
       </td>
     </tr>
-  `;
+  `).join("");
 }
 
 async function getOrderStatus(orderId) {
@@ -226,11 +232,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (patientId) document.getElementById('patientName').value = await getPatientName(patientId);
   if (testTypeId) document.getElementById('testTypeName').value = await getTestTypeName(testTypeId);
 
-  // Renderiza el único field del testType
+  // Renderiza todos los fields del testType
   if (testTypeId) {
     const fields = await getFieldsByTestType(testTypeId);
     if (fields.length > 0) {
-      await renderFieldRow(fields[0]);
+      await renderFieldRows(fields);
     }
   }
 });

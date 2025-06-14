@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!token) {
     // No hay token, redirigir a login
-    window.location.href = "../login/login.html"; // Ajusta la ruta a tu login
+    window.location.href = "../auth/signIn.html"; // Ajusta la ruta a tu login
     return;
   }
 
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (error) {
     // Token inválido o expirado, redirigir a login
     localStorage.removeItem("token");
-    window.location.href = "../login/login.html"; // Ajusta la ruta a tu login
+    window.location.href = "../auth/signIn.html"; // Ajusta la ruta a tu login
     return;
   }
 

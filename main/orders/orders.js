@@ -61,7 +61,7 @@ async function cargarPacientes() {
 
 async function cargarTestTypes() {
   const token = localStorage.getItem("token");
-  const res = await axios.get("http://localhost:3003/api/TestTypes", {
+  const res = await axios.get("http://localhost:5262/api/TestTypes", {
     headers: { Authorization: `Bearer ${token}` }
   });
   testTypes = res.data;
@@ -83,64 +83,55 @@ async function fetchOrders(doctorId) {
 }
 
 function mostrarOrdenes(orders) {
+  // Ordenar por fecha de creación más reciente
+  orders.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
   const container = document.getElementById("ordersContainer");
   container.innerHTML = "";
 
-  if (orders.length === 0) return container.innerHTML = "<p>No se encontraron órdenes.</p>";
+  if (orders.length === 0) {
+    container.innerHTML = "<p>No se encontraron órdenes.</p>";
+    return;
+  }
 
   orders.forEach(order => {
-    const patientName = pacientesMap[order.patientId.toString()] || `ID ${order.patientId}`;
+    const patientIdStr = order.patientId.toString();
+    const patientName = pacientesMap[patientIdStr] || `ID ${order.patientId}`;
 
     const div = document.createElement("div");
     div.classList.add("order-card");
-
-    const notasId = `notas-${order.orderId}`;
-    const btnEditarId = `btn-editar-${order.orderId}`;
-
     div.innerHTML = `
       <div class="d-flex justify-content-between">
         <div>
           <h5>Orden #${order.orderId}</h5>
           <p class="order-meta mb-1">
-            <i class="bi bi-person"></i> Paciente: ${patientName} (ID: ${order.patientId})
-          </p>
+            <i class="bi bi-person"></i> Paciente: ${patientName}
+            <span class="text-muted">(ID: ${order.patientId})</span>
+            </p>
+
           <p class="order-meta mb-1">
             <i class="bi bi-flask"></i> Test: ${getTestName(order.testTypeId)} (ID ${order.testTypeId})
-          </p>
-          <p class="order-meta mb-1">
-            <i class="bi bi-clock"></i> Fecha: ${new Date(order.orderDate).toLocaleString()}
-          </p>
+            </p>
+
+          <p class="order-meta mb-1"><i class="bi bi-clock"></i> Fecha: ${new Date(order.orderDate).toLocaleString()}</p>
           <span class="badge bg-${getBadgeColor(order.status)} badge-status text-capitalize">${order.status}</span>
-          <p class="mt-2"><strong>Notas:</strong>
-            <input type="text" id="${notasId}" class="form-control d-inline-block" style="width: auto; max-width: 400px" value="${order.notes || ''}" readonly />
-          </p>
+          <p class="mt-2"><strong>Notas:</strong> ${order.notes || "Sin notas"}</p>
         </div>
         <div class="order-actions d-flex flex-column justify-content-start gap-2">
-          ${order.status.toLowerCase() === "pendiente" ? `
-            <button id="${btnEditarId}" class="btn btn-outline-secondary btn-sm">Editar</button>
-            <button class="btn btn-outline-danger btn-sm" onclick='eliminarOrden(${order.orderId}, ${order.doctorId})'>Eliminar</button>
-          ` : ''}
-          <button class="btn btn-outline-primary btn-sm" onclick='redirigirAResultado(${order.orderId},${order.patientId},${order.testTypeId})'>Registrar Resultado</button>
+          ${order.status.toLowerCase() !== "finalizado" ? `
+          <button class="btn btn-outline-secondary btn-sm" onclick='abrirModalEditarOrden(${JSON.stringify(order)})'>
+            <i class="bi bi-pencil-square"></i> Editar
+          </button>
+          <button class="btn btn-outline-danger btn-sm" onclick='eliminarOrden(${order.orderId}, ${order.doctorId})'>
+            <i class="bi bi-trash3"></i> Eliminar
+          </button>
+          <button class="btn btn-outline-primary btn-sm" onclick='redirigirAResultado(${order.orderId},${order.patientId},${order.testTypeId})'>
+            <i class="bi bi-upload"></i> Registrar Resultado
+          </button>
+          ` : ""}
         </div>
       </div>
     `;
     container.appendChild(div);
-
-    const btnEditar = document.getElementById(btnEditarId);
-    if (btnEditar) {
-      btnEditar.addEventListener("click", async () => {
-        const inputNotas = document.getElementById(notasId);
-        if (btnEditar.textContent.trim() === "Editar") {
-          inputNotas.removeAttribute("readonly");
-          inputNotas.focus();
-          btnEditar.textContent = "Guardar";
-        } else {
-          inputNotas.setAttribute("readonly", "readonly");
-          btnEditar.textContent = "Editar";
-          await actualizarNotas(order.orderId, order.doctorId, inputNotas.value);
-        }
-      });
-    }
   });
 }
 

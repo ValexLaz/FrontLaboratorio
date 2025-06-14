@@ -1,4 +1,5 @@
 let historialFiltrado = [];
+let historialUnico = [];
 
 function renderHistorialTabla(data) {
   const tbody = document.getElementById("historialBody");
@@ -22,6 +23,16 @@ function renderHistorialTabla(data) {
     `;
     tbody.appendChild(tr);
   });
+}
+
+function agruparPorOrderId(historial) {
+  const orderIdMap = {};
+  historial.forEach(row => {
+    if (!orderIdMap[row.orderId]) {
+      orderIdMap[row.orderId] = row;
+    }
+  });
+  return Object.values(orderIdMap);
 }
 
 async function getDoctorName(doctorId, token) {
@@ -61,7 +72,7 @@ async function fetchHistorial() {
 
 
     // 5. Tipos de test
-    const testTypesRes = await fetch("http://localhost:3003/api/TestTypes", {
+    const testTypesRes = await fetch("http://localhost:5262/api/TestTypes", {
       headers: { Authorization: `Bearer ${token}` }
     });
     const testTypes = await testTypesRes.json();
@@ -89,49 +100,45 @@ async function fetchHistorial() {
       };
     });
 
-    historialFiltrado = (await Promise.all(resultFields.map(async rf => {
-  const result = results.find(r => r.resultId === rf.resultId);
-  if (!result) return null;
+    historialFiltrado = await Promise.all(resultFields.map(async rf => {
+      const result = results.find(r => r.resultId === rf.resultId);
+      if (!result) return null;
 
-  const pacienteObj = pacientesMap[result.patientId];
-  const paciente = pacienteObj ? pacienteObj.nombre : null; // <-- podría quedar null
-  const doctorId = pacienteObj ? pacienteObj.doctorId : null;
+      // Obtén datos del paciente y su doctor
+      const pacienteObj = pacientesMap[result.patientId];
+      const paciente = pacienteObj ? pacienteObj.nombre : result.patientId;
+      const doctorId = pacienteObj ? pacienteObj.doctorId : null;
 
-  let doctor = "No asignado";
-  if (doctorId) {
-    doctor = await getDoctorName(doctorId, token);
-  }
+      let doctor = "No asignado";
+      if (doctorId) {
+        doctor = await getDoctorName(doctorId, token);
+      }
 
-  const testType = testTypesMap[result.testTypeId] || result.testTypeId;
-  const field = fieldsMap[rf.fieldId];
-  const parametro = field ? field.fieldName : rf.fieldId;
-  const valorDefinido = field ? field.referenceRange : "-";
-  const unidad = field ? field.unit : "-";
-  const valorRegistrado = rf.value;
-  const fecha = result.createdAt
-    ? new Date(result.createdAt).toLocaleDateString('es-ES')
-    : "-";
-  const comentario = rf.comment || "-";
+      const testType = testTypesMap[result.testTypeId] || result.testTypeId;
+      const field = fieldsMap[rf.fieldId];
+      const parametro = field ? field.fieldName : rf.fieldId;
+      const valorDefinido = field ? field.referenceRange : "-";
+      const unidad = field ? field.unit : "-";
+      const valorRegistrado = rf.value;
+      const fecha = result.createdAt
+        ? new Date(result.createdAt).toLocaleDateString('es-ES')
+        : "-";
+      const comentario = rf.comment || "-";
+      const orderId = result.orderId;
+      const patientId = result.patientId; // <-- add this
+      return { orderId, patientId, paciente, doctor, testType, parametro, valorDefinido, valorRegistrado, unidad, fecha, comentario };
+    }));
 
-  if (!paciente) return null;
-
-  return {
-    paciente, doctor, testType, parametro, valorDefinido,
-    valorRegistrado, unidad, fecha, comentario,
-    orderId: result.orderId,
-    patientId: result.patientId
-  };
-}))).filter(Boolean); // 👈 esto asegura que no haya nulls
-
-
-    renderHistorialTabla(historialFiltrado.filter(Boolean));
+    historialFiltrado = historialFiltrado.filter(Boolean);
+    historialUnico = agruparPorOrderId(historialFiltrado);
+    renderHistorialTabla(historialUnico);
   } catch (err) {
     alert("Error al cargar el historial. Verifica que todos los servicios estén activos.");
   }
 }
 
 function descargarPDF(idx) {
-  const row = historialFiltrado[idx];
+  const row = historialUnico[idx];
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
@@ -144,21 +151,19 @@ function descargarPDF(idx) {
   doc.text(`Tipo de Test: ${row.testType}`, 14, 46);
   doc.text(`Fecha: ${row.fecha}`, 14, 54);
 
+  // Busca todos los campos de ese orderId
+  const fieldsDeLaOrden = historialFiltrado.filter(f => f.orderId === row.orderId);
+
   doc.autoTable({
     startY: 62,
-    head: [['Parámetro', 'Valor Definido', 'Valor Registrado', 'Unidad']],
-    body: [
-      [row.parametro, row.valorDefinido, row.valorRegistrado, row.unidad]
-    ],
+    head: [['Parámetro', 'Valor Definido', 'Valor Registrado', 'Unidad', 'Comentario']],
+    body: fieldsDeLaOrden.map(f => [
+      f.parametro, f.valorDefinido, f.valorRegistrado, f.unidad, f.comentario
+    ]),
     theme: 'grid'
   });
 
-  // Agrega el comentario del doctor debajo de la tabla
-  let finalY = doc.lastAutoTable.finalY || 72;
-  doc.setFontSize(12);
-  doc.text(`Comentario del doctor: ${row.comentario}`, 14, finalY + 10);
-
-  doc.save(`Resultado_${row.paciente.replace(/\s+/g, '_')}_${row.parametro.replace(/\s+/g, '_')}.pdf`);
+  doc.save(`Resultado_${row.paciente.replace(/\s+/g, '_')}_${row.testType.replace(/\s+/g, '_')}.pdf`);
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -166,15 +171,15 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("buscadorPaciente").addEventListener("input", function() {
     const texto = this.value.trim().toLowerCase();
-    const filtrados = historialFiltrado.filter(row =>
+    const filtrados = historialUnico.filter(row =>
       row.paciente.toLowerCase().includes(texto)
     );
     renderHistorialTabla(filtrados);
   });
-});
+
   document.getElementById("buscadorOrden").addEventListener("input", function () {
     const valor = this.value.trim();
-    const filtrados = historialFiltrado.filter(row =>
+    const filtrados = historialUnico.filter(row =>
       row.orderId?.toString().includes(valor)
     );
     renderHistorialTabla(filtrados);
@@ -182,8 +187,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("buscadorPacienteId").addEventListener("input", function () {
     const valor = this.value.trim();
-    const filtrados = historialFiltrado.filter(row =>
+    const filtrados = historialUnico.filter(row =>
       row.patientId?.toString().includes(valor)
     );
     renderHistorialTabla(filtrados);
   });
+});
