@@ -44,6 +44,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    // Obtén el id del doctor desde localStorage con la clave correcta
+    const doctorIdRaw = localStorage.getItem("userId");
+    console.log("Valor recuperado de localStorage userId:", doctorIdRaw);
+    const doctorId = Number(doctorIdRaw);
+    if (!doctorId || isNaN(doctorId)) {
+      alert("No se pudo obtener el ID del doctor. Por favor, vuelve a iniciar sesión.");
+      return;
+
+    }
+
     const data = {
       patient_Id: editingPatientId,
       first_Name: document.getElementById("firstName").value.trim(),
@@ -52,8 +62,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       gender: document.getElementById("gender").value,
       email: document.getElementById("email").value.trim(),
       phone: document.getElementById("phone").value.trim() || null,
-      doctor_Id: 0,
+      doctor_Id: doctorId, // Aquí va el id correcto
     };
+
+    console.log(data); // <-- Agrega esto antes del axios.post
 
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };

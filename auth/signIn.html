@@ -161,9 +161,12 @@
               loginData
             );
             console.log("Login exitoso:", response.data);
+            const userId = response.data.userId || response.data.id;
             localStorage.setItem("token", response.data.token);
+            localStorage.setItem("userId", userId);
+            console.log("Guardado en localStorage userId:", userId);
 
-            // Redirigir a otra página si es necesario
+            // Redirigir inmediatamente
             window.location.href = "../main/main.html";
           } catch (error) {
             console.error(
