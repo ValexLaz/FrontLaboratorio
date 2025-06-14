@@ -61,7 +61,7 @@ async function fetchHistorial() {
 
 
     // 5. Tipos de test
-    const testTypesRes = await fetch("http://localhost:5262/api/TestTypes", {
+    const testTypesRes = await fetch("http://localhost:3003/api/TestTypes", {
       headers: { Authorization: `Bearer ${token}` }
     });
     const testTypes = await testTypesRes.json();
@@ -89,32 +89,40 @@ async function fetchHistorial() {
       };
     });
 
-    historialFiltrado = await Promise.all(resultFields.map(async rf => {
-      const result = results.find(r => r.resultId === rf.resultId);
-      if (!result) return null;
+    historialFiltrado = (await Promise.all(resultFields.map(async rf => {
+  const result = results.find(r => r.resultId === rf.resultId);
+  if (!result) return null;
 
-      // Obtén datos del paciente y su doctor
-      const pacienteObj = pacientesMap[result.patientId];
-      const paciente = pacienteObj ? pacienteObj.nombre : result.patientId;
-      const doctorId = pacienteObj ? pacienteObj.doctorId : null;
+  const pacienteObj = pacientesMap[result.patientId];
+  const paciente = pacienteObj ? pacienteObj.nombre : null; // <-- podría quedar null
+  const doctorId = pacienteObj ? pacienteObj.doctorId : null;
 
-      let doctor = "No asignado";
-      if (doctorId) {
-        doctor = await getDoctorName(doctorId, token);
-      }
+  let doctor = "No asignado";
+  if (doctorId) {
+    doctor = await getDoctorName(doctorId, token);
+  }
 
-      const testType = testTypesMap[result.testTypeId] || result.testTypeId;
-      const field = fieldsMap[rf.fieldId];
-      const parametro = field ? field.fieldName : rf.fieldId;
-      const valorDefinido = field ? field.referenceRange : "-";
-      const unidad = field ? field.unit : "-";
-      const valorRegistrado = rf.value;
-      const fecha = result.createdAt
-        ? new Date(result.createdAt).toLocaleDateString('es-ES')
-        : "-";
-      const comentario = rf.comment || "-";
-      return { paciente, doctor, testType, parametro, valorDefinido, valorRegistrado, unidad, fecha, comentario };
-    }));
+  const testType = testTypesMap[result.testTypeId] || result.testTypeId;
+  const field = fieldsMap[rf.fieldId];
+  const parametro = field ? field.fieldName : rf.fieldId;
+  const valorDefinido = field ? field.referenceRange : "-";
+  const unidad = field ? field.unit : "-";
+  const valorRegistrado = rf.value;
+  const fecha = result.createdAt
+    ? new Date(result.createdAt).toLocaleDateString('es-ES')
+    : "-";
+  const comentario = rf.comment || "-";
+
+  if (!paciente) return null;
+
+  return {
+    paciente, doctor, testType, parametro, valorDefinido,
+    valorRegistrado, unidad, fecha, comentario,
+    orderId: result.orderId,
+    patientId: result.patientId
+  };
+}))).filter(Boolean); // 👈 esto asegura que no haya nulls
+
 
     renderHistorialTabla(historialFiltrado.filter(Boolean));
   } catch (err) {
@@ -164,3 +172,18 @@ window.addEventListener("DOMContentLoaded", () => {
     renderHistorialTabla(filtrados);
   });
 });
+  document.getElementById("buscadorOrden").addEventListener("input", function () {
+    const valor = this.value.trim();
+    const filtrados = historialFiltrado.filter(row =>
+      row.orderId?.toString().includes(valor)
+    );
+    renderHistorialTabla(filtrados);
+  });
+
+  document.getElementById("buscadorPacienteId").addEventListener("input", function () {
+    const valor = this.value.trim();
+    const filtrados = historialFiltrado.filter(row =>
+      row.patientId?.toString().includes(valor)
+    );
+    renderHistorialTabla(filtrados);
+  });

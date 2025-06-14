@@ -142,43 +142,56 @@ async function fetchPatients() {
 }
 
 function renderPatients(patientList) {
-  tableBody.innerHTML = "";
+  const container = document.getElementById("patientsContainer");
+  container.innerHTML = "";
 
-  patientList.forEach((p) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${p.patient_Id}</td>
-      <td>${p.first_Name}</td>
-      <td>${p.last_Name}</td>
-      <td>${new Date(p.date_Of_Birth).toLocaleDateString("es-ES")}</td>
-      <td>${p.gender}</td>
-      <td>${p.email}</td>
-      <td>${p.phone ?? "-"}</td>
-      <td class="text-center">
-        <button class="btn btn-sm btn-primary me-2" title="Editar" onclick="startEdit(${p.patient_Id})">
-          <i class="bi bi-pencil-fill"></i>
-        </button>
-        <button class="btn btn-sm btn-danger" title="Eliminar" onclick="deletePatient(${p.patient_Id})">
-          <i class="bi bi-trash-fill"></i>
-        </button>
-      </td>
+  if (patientList.length === 0) {
+    container.innerHTML = `<p class="text-center">No hay pacientes registrados.</p>`;
+    return;
+  }
+
+  patientList.slice().reverse().forEach((p) => {
+    const card = document.createElement("div");
+    card.className = "order-card animate-fade-in";
+
+    card.innerHTML = `
+      <div class="d-flex justify-content-between">
+        <div>
+          <h5 class="text-primary fw-semibold">${p.first_Name} ${p.last_Name}</h5>
+          <p class="order-meta mb-1"><i class="bi bi-hash"></i> ID: ${p.patient_Id}</p>
+          <p class="order-meta mb-1"><i class="bi bi-calendar3"></i> Fecha Nac.: ${new Date(p.date_Of_Birth).toLocaleDateString("es-ES")}</p>
+          <p class="order-meta mb-1"><i class="bi bi-gender-ambiguous"></i> Género: ${p.gender}</p>
+          <p class="order-meta mb-1"><i class="bi bi-envelope-at"></i> ${p.email}</p>
+          <p class="order-meta mb-0"><i class="bi bi-telephone"></i> ${p.phone ?? "-"}</p>
+        </div>
+        <div class="order-actions d-flex flex-column justify-content-start gap-2">
+          <button class="btn btn-outline-secondary btn-sm" title="Editar">
+            <i class="bi bi-pencil-fill"></i> Editar
+          </button>
+          <button class="btn btn-outline-danger btn-sm" title="Eliminar">
+            <i class="bi bi-trash-fill"></i> Eliminar
+          </button>
+        </div>
+      </div>
     `;
 
-    row.querySelector(".btn-primary").addEventListener("click", () => {
+    const editBtn = card.querySelector(".btn-outline-secondary");
+    const deleteBtn = card.querySelector(".btn-outline-danger");
+
+    editBtn.addEventListener("click", () => {
       startEditing(p);
     });
 
-    row.querySelector(".btn-danger").addEventListener("click", () => {
+    deleteBtn.addEventListener("click", () => {
       deletePatient(p.patient_Id);
     });
 
-    tableBody.appendChild(row);
+    container.appendChild(card);
   });
-
-  if (patientList.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="8" class="text-center">No hay pacientes registrados</td></tr>`;
-  }
 }
+
+
+
 
 function startEditing(patient) {
   editMode = true;

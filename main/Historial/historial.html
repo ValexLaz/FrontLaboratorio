@@ -4,11 +4,17 @@
   <meta charset="UTF-8">
   <title>Historial de Clientes</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="../assets/styles.css">
+  <link rel="stylesheet" href="../../assets/styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
 </head>
 <body>
   <div class="container py-4">
-    <h2 class="mb-4">Historial de Clientes</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Historial de Resultados</h2>
+            <button class="btn btn-outline-primary btn-icon" onclick="location.href='../main.html'">
+                <i class="bi bi-house-fill"></i> Inicio
+            </button>
+        </div>
 
     <!-- Botón de atrás -->
     <div class="mb-3">
@@ -17,10 +23,16 @@
       </a>
     </div>
 
-    <!-- Justo antes de la tabla -->
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <input type="text" id="buscadorPaciente" class="form-control" placeholder="Buscar por nombre de paciente...">
+    <!-- Filtros de búsqueda -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <input type="text" id="buscadorPaciente" class="form-control" placeholder="Buscar por nombre del paciente...">
+      </div>
+      <div class="col-md-4">
+        <input type="number" id="buscadorOrden" class="form-control" placeholder="Buscar por ID de orden...">
+      </div>
+      <div class="col-md-4">
+        <input type="number" id="buscadorPacienteId" class="form-control" placeholder="Buscar por ID de paciente...">
       </div>
     </div>
 
@@ -30,9 +42,9 @@
           <tr>
             <th>Paciente</th>
             <th>Doctor</th>
-            <th>Tipo de Test</th>
+            <th>Tipo de Analisis</th>
             <th>Parámetro</th>
-            <th>Valor Definido</th>
+            <th>Valor de Referencia</th>
             <th>Valor Registrado</th>
             <th>Unidad</th>
             <th>Fecha</th>
@@ -45,6 +57,7 @@
       </table>
     </div>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.7.0/jspdf.plugin.autotable.min.js"></script>
