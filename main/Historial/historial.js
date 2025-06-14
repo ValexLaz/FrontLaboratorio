@@ -66,7 +66,7 @@ async function fetchHistorial() {
     }
 
     // 5. Tipos de test
-    const testTypesRes = await fetch("http://localhost:5262/api/TestTypes", {
+    const testTypesRes = await fetch("http://localhost:3003/api/TestTypes", {
       headers: { Authorization: `Bearer ${token}` }
     });
     const testTypes = await testTypesRes.json();

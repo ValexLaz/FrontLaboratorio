@@ -63,7 +63,7 @@ async function cargarPacientes() {
 async function cargarTestTypes() {
   try {
     const token = localStorage.getItem("token");
-    const res = await axios.get("http://localhost:5262/api/TestTypes", {
+    const res = await axios.get("http://localhost:3003/api/TestTypes", {
       headers: { Authorization: `Bearer ${token}` }
     });
 

@@ -149,7 +149,7 @@ async function getPatientName(patientId) {
 async function getTestTypeName(testTypeId) {
   try {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:5262/api/TestTypes/${testTypeId}`, {
+    const res = await fetch(`http://localhost:3003/api/TestTypes/${testTypeId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) return `ID ${testTypeId}`;
